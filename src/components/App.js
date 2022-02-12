@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import AppRouter from 'components/Router';
 import {authService} from "fBase";
+import { updateProfile } from "firebase/auth";
 
 //유저 로그인유무가 제일 위 (app.js) 에 있어야하고
 //그 후로 app.js => router.js로 
@@ -14,18 +15,33 @@ function App() {
     authService.onAuthStateChanged((user) => {
       if(user) {
         setIsLoggedIn(true);
-        setUserObj(user);
+        setUserObj({
+          displayName: user.displayName,
+          uid:user.uid,
+          updateProfile: (args) => updateProfile(user, { displayName: user.displayName }),
+        });
       } else {
         setIsLoggedIn(false);
       }
       setInit(true);
     });
   }, []);
+
+  //refresh user
+  const refreshUser = () => {
+    const user = authService.currentUser;
+    setUserObj({
+      displayName: user.displayName,
+      uid:user.uid,
+      updateProfile: (args) => updateProfile(user, { displayName: user.displayName }),
+    });
+  }
+
   return (
   <>
     {init ? 
     (
-      <AppRouter isLoggedIn={isLoggedIn} userObj = {userObj} /> 
+      <AppRouter isLoggedIn={isLoggedIn} userObj = {userObj} refreshUser={refreshUser}/> 
     ) : ( 
       "Initializing..." 
       )}
